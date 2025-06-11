@@ -1,5 +1,4 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 import TaskList from './components/TaskList';
 import TaskForm from './components/TaskForm';
@@ -44,6 +43,6 @@ const App: React.FC = () => {
       {tasks ? <TaskList tasks={tasks} onDelete={deleteTask} /> : <p>Loading tasks...</p>}
     </div>
   );
-}
+};
 
 export default App;
