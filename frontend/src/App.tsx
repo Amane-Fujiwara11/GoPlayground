@@ -18,22 +18,31 @@ const App: React.FC = () => {
       .then((data) => setTasks(data));
   }, []);
 
-  const addTask = (title: string, content: string) => {
-    fetch('http://localhost:8080/tasks', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ title, content }),
-    })
-      .then((response) => response.json())
-      .then((newTask) => setTasks((prevTasks) => (prevTasks ? [...prevTasks, newTask] : [newTask])));
+  const addTask = async (title: string, content: string) => {
+    try {
+      const response = await fetch('http://localhost:8080/tasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ title, content }),
+      });
+      const newTask = await response.json();
+      setTasks((prevTasks) => (prevTasks ? [...prevTasks, newTask] : [newTask]));
+    } catch (error) {
+      console.error('Error adding task:', error);
+    }
   };
 
-  const deleteTask = (id: number) => {
-    fetch(`http://localhost:8080/tasks/${id}`, {
-      method: 'DELETE',
-    }).then(() => setTasks((prevTasks) => prevTasks?.filter((task) => task.id !== id) || null));
+  const deleteTask = async (id: number) => {
+    try {
+      await fetch(`http://localhost:8080/tasks/${id}`, {
+        method: 'DELETE',
+      });
+      setTasks((prevTasks) => prevTasks?.filter((task) => task.id !== id) || null);
+    } catch (error) {
+      console.error('Error deleting task:', error);
+    }
   };
 
   return (
