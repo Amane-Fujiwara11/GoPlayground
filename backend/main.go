@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
@@ -49,5 +50,5 @@ func main() {
 	r.HandleFunc("/tasks", createTask).Methods("POST")
 	r.HandleFunc("/tasks/{id}", deleteTask).Methods("DELETE")
 	fmt.Println("Server is running on http://localhost:8080")
-	http.ListenAndServe(":8080", r)
+	http.ListenAndServe(":8080", handlers.CORS(handlers.AllowedOrigins([]string{"http://localhost:3000"}))(r))
 }
