@@ -1,16 +1,53 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Hello, World!")
+type Task struct {
+	ID      int    `json:"id"`
+	Title   string `json:"title"`
+	Content string `json:"content"`
+}
+
+var tasks []Task
+
+func getTasks(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(tasks)
+}
+
+func createTask(w http.ResponseWriter, r *http.Request) {
+	var task Task
+	json.NewDecoder(r.Body).Decode(&task)
+	task.ID = len(tasks) + 1
+	tasks = append(tasks, task)
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(task)
+}
+
+func deleteTask(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id, _ := strconv.Atoi(params["id"])
+	for index, task := range tasks {
+		if task.ID == id {
+			tasks = append(tasks[:index], tasks[index+1:]...)
+			break
+		}
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func main() {
-	http.HandleFunc("/", handler)
+	r := mux.NewRouter()
+	r.HandleFunc("/tasks", getTasks).Methods("GET")
+	r.HandleFunc("/tasks", createTask).Methods("POST")
+	r.HandleFunc("/tasks/{id}", deleteTask).Methods("DELETE")
 	fmt.Println("Server is running on http://localhost:8080")
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":8080", r)
 }
