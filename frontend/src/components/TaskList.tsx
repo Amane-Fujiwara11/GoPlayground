@@ -1,10 +1,11 @@
 import React from 'react';
-import TaskItem from './TaskItem';
 
 interface Task {
   id: number;
   title: string;
   content: string;
+  createdAt: string;
+  status: string;
 }
 
 interface TaskListProps {
@@ -15,11 +16,32 @@ interface TaskListProps {
 
 const TaskList: React.FC<TaskListProps> = ({ tasks, onDelete }) => {
   return (
-    <div>
-      {tasks.map((task) => (
-        <TaskItem key={task.id} task={task} onDelete={onDelete} />
-      ))}
-    </div>
+    <table className="TaskTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Content</th>
+          <th>Created At</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {tasks.map((task) => (
+          <tr key={task.id}>
+            <td>{task.id}</td>
+            <td>{task.title}</td>
+            <td>{task.content}</td>
+            <td>{task.createdAt}</td>
+            <td>{task.status}</td>
+            <td>
+              <button onClick={() => onDelete(task.id)}>Delete</button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 };
 
