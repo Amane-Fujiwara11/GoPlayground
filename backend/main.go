@@ -11,10 +11,10 @@ import (
 )
 
 type Task struct {
-	ID      int    `json:"id"`
-	Title   string `json:"title"`
-	Content string `json:"content"`
-	Status  string `json:"status"`
+	ID        int    `json:"id"`
+	Title     string `json:"title"`
+	Content   string `json:"content"`
+	Completed bool   `json:"completed"`
 }
 
 var tasks []Task
@@ -28,7 +28,7 @@ func createTask(w http.ResponseWriter, r *http.Request) {
 	var task Task
 	json.NewDecoder(r.Body).Decode(&task)
 	task.ID = len(tasks) + 1
-	task.Status = "未完了"
+	task.Completed = false
 	tasks = append(tasks, task)
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(task)
@@ -46,6 +46,30 @@ func deleteTask(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func updateTaskCompletion(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id, _ := strconv.Atoi(params["id"])
+	var updatedCompletion struct {
+		Completed bool `json:"completed"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&updatedCompletion); err != nil {
+		fmt.Println("Error decoding request body:", err)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid request body"})
+		return
+	}
+	fmt.Println("Updated completion received:", updatedCompletion.Completed)
+	for index, task := range tasks {
+		if task.ID == id {
+			tasks[index].Completed = updatedCompletion.Completed
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(tasks[index])
+			return
+		}
+	}
+	w.WriteHeader(http.StatusNotFound)
+}
+
 func updateTaskStatus(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id, _ := strconv.Atoi(params["id"])
@@ -56,7 +80,7 @@ func updateTaskStatus(w http.ResponseWriter, r *http.Request) {
 
 	for index, task := range tasks {
 		if task.ID == id {
-			tasks[index].Status = updatedStatus.Status
+			tasks[index].Completed = updatedStatus.Status == "完了"
 			w.WriteHeader(http.StatusOK)
 			json.NewEncoder(w).Encode(tasks[index])
 			return
@@ -70,7 +94,7 @@ func main() {
 	r.HandleFunc("/tasks", getTasks).Methods("GET")
 	r.HandleFunc("/tasks", createTask).Methods("POST")
 	r.HandleFunc("/tasks/{id}", deleteTask).Methods("DELETE")
-	r.HandleFunc("/tasks/{id}/status", updateTaskStatus).Methods("PATCH")
+	r.HandleFunc("/tasks/{id}/complete", updateTaskCompletion).Methods("PATCH")
 	fmt.Println("Server is running on http://localhost:8080")
 	http.ListenAndServe(":8080", handlers.CORS(
 		handlers.AllowedOrigins([]string{"http://localhost:3000"}),
