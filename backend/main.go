@@ -5,15 +5,18 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
 type Task struct {
-	ID      int    `json:"id"`
-	Title   string `json:"title"`
-	Content string `json:"content"`
+	ID        int    `json:"id"`
+	Title     string `json:"title"`
+	Content   string `json:"content"`
+	CreatedAt string `json:"createdAt"`
+	Status    string `json:"status"`
 }
 
 var tasks []Task
@@ -27,6 +30,8 @@ func createTask(w http.ResponseWriter, r *http.Request) {
 	var task Task
 	json.NewDecoder(r.Body).Decode(&task)
 	task.ID = len(tasks) + 1
+	task.CreatedAt = time.Now().Format("2006-01-02 15:04:05")
+	task.Status = "未完了"
 	tasks = append(tasks, task)
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(task)

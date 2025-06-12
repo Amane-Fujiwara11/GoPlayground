@@ -38,12 +38,79 @@ form button:hover {
   background-color: #0056b3;
 }
 
-.TaskItem {
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 10px;
-  margin-bottom: 10px;
+.TaskTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 16px;
   text-align: left;
+}
+
+.TaskTable th,
+.TaskTable td {
+  border: 1px solid #ddd;
+  padding: 12px;
+}
+
+.TaskTable th {
+  background-color: #f4f4f4;
+  color: #333;
+  font-weight: bold;
+}
+
+.TaskTable tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.TaskTable tr:hover {
+  background-color: #f1f1f1;
+}
+
+.TaskTable button {
+  padding: 5px 10px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.TaskTable button:hover {
+  background-color: #a71d2a;
+}
+
+.TaskItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.TaskItem h3 {
+  margin: 0;
+  font-size: 20px;
+  color: #007bff;
+  font-weight: bold;
+}
+
+.TaskItem p {
+  margin: 5px 0 0;
+  font-size: 16px;
+  color: #555;
+}
+
+.TaskItem button {
+  padding: 8px 12px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.TaskItem button:hover {
+  background-color: #a71d2a;
+  transform: scale(1.05);
 }
 
 .TaskItem h3 {
