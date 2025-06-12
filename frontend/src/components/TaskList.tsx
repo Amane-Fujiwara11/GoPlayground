@@ -10,10 +10,11 @@ interface Task {
 interface TaskListProps {
   tasks: Task[];
   onDelete: (id: number) => void;
+  onStatusChange: (id: number, status: string) => void;
 }
 
 
-const TaskList: React.FC<TaskListProps> = ({ tasks, onDelete }) => {
+const TaskList: React.FC<TaskListProps> = ({ tasks, onDelete, onStatusChange }) => {
   return (
     <table className="TaskTable">
       <thead>
@@ -31,7 +32,16 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onDelete }) => {
             <td>{task.id}</td>
             <td>{task.title}</td>
             <td>{task.content}</td>
-            <td>{task.status}</td>
+            <td>
+              <select
+                value={task.status}
+                onChange={(e) => onStatusChange(task.id, e.target.value)}
+              >
+                <option value="未着手">未着手</option>
+                <option value="進行中">進行中</option>
+                <option value="完了">完了</option>
+              </select>
+            </td>
             <td>
               <button onClick={() => onDelete(task.id)}>Delete</button>
             </td>

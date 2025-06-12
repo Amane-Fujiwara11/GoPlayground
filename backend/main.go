@@ -46,11 +46,31 @@ func deleteTask(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func updateTaskStatus(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id, _ := strconv.Atoi(params["id"])
+	var updatedStatus struct {
+		Status string `json:"status"`
+	}
+	json.NewDecoder(r.Body).Decode(&updatedStatus)
+
+	for index, task := range tasks {
+		if task.ID == id {
+			tasks[index].Status = updatedStatus.Status
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(tasks[index])
+			return
+		}
+	}
+	w.WriteHeader(http.StatusNotFound)
+}
+
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/tasks", getTasks).Methods("GET")
 	r.HandleFunc("/tasks", createTask).Methods("POST")
 	r.HandleFunc("/tasks/{id}", deleteTask).Methods("DELETE")
+	r.HandleFunc("/tasks/{id}/status", updateTaskStatus).Methods("PATCH")
 	fmt.Println("Server is running on http://localhost:8080")
 	http.ListenAndServe(":8080", handlers.CORS(
 		handlers.AllowedOrigins([]string{"http://localhost:3000"}),

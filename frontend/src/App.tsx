@@ -35,6 +35,27 @@ const App: React.FC = () => {
     }
   };
 
+  const updateTaskStatus = async (id: number, status: string) => {
+    try {
+      await fetch(`http://localhost:8080/tasks/${id}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status }),
+      });
+      setTasks((prevTasks) =>
+        prevTasks
+          ? prevTasks.map((task) =>
+              task.id === id ? { ...task, status } : task
+            )
+          : null
+      );
+    } catch (error) {
+      console.error('Error updating task status:', error);
+    }
+  };
+
   const deleteTask = async (id: number) => {
     try {
       await fetch(`http://localhost:8080/tasks/${id}`, {
@@ -50,7 +71,15 @@ const App: React.FC = () => {
     <div className="App">
       <h1>Task Management</h1>
       <TaskForm onAddTask={addTask} />
-      {tasks ? <TaskList tasks={tasks} onDelete={deleteTask} /> : <p>Loading tasks...</p>}
+      {tasks ? (
+        <TaskList
+          tasks={tasks}
+          onDelete={deleteTask}
+          onStatusChange={updateTaskStatus}
+        />
+      ) : (
+        <p>Loading tasks...</p>
+      )}
     </div>
   );
 };
