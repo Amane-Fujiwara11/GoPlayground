@@ -4,7 +4,6 @@ interface Task {
   id: number;
   title: string;
   content: string;
-  createdAt: string;
   status: string;
 }
 
@@ -22,7 +21,6 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onDelete }) => {
           <th>ID</th>
           <th>Title</th>
           <th>Content</th>
-          <th>Created At</th>
           <th>Status</th>
           <th>Actions</th>
         </tr>
@@ -33,7 +31,6 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onDelete }) => {
             <td>{task.id}</td>
             <td>{task.title}</td>
             <td>{task.content}</td>
-            <td>{task.createdAt}</td>
             <td>{task.status}</td>
             <td>
               <button onClick={() => onDelete(task.id)}>Delete</button>
