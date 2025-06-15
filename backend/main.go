@@ -1,8 +1,10 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -18,6 +20,7 @@ type Task struct {
 }
 
 var tasks []Task
+var db *sql.DB
 
 func getTasks(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -66,6 +69,16 @@ func updateTaskStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+
+	var err error
+	db, err = sql.Open("mysql", "root:root@tcp(127.0.0.1:3306)/taskdb")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	fmt.Println("Connected to MySQL!")
+
 	r := mux.NewRouter()
 	r.HandleFunc("/tasks", getTasks).Methods("GET")
 	r.HandleFunc("/tasks", createTask).Methods("POST")
