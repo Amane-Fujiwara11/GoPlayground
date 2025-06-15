@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"strconv"
 
+	_ "github.com/go-sql-driver/mysql"
+
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
@@ -23,6 +25,23 @@ var tasks []Task
 var db *sql.DB
 
 func getTasks(w http.ResponseWriter, r *http.Request) {
+	rows, err := db.Query("SELECT id, title, content, completed FROM tasks")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var tasks []Task
+	for rows.Next() {
+		var task Task
+		if err := rows.Scan(&task.ID, &task.Title, &task.Content, &task.Status); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		tasks = append(tasks, task)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(tasks)
 }
