@@ -7,7 +7,7 @@ interface Task {
   id: number;
   title: string;
   content: string;
-  completed: boolean;
+  status: string;
 }
 
 const App: React.FC = () => {
@@ -56,27 +56,6 @@ const App: React.FC = () => {
     }
   };
 
-  const updateTaskCompletion = async (id: number, completed: boolean) => {
-    try {
-      await fetch(`http://localhost:8080/tasks/${id}/complete`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ completed }),
-      });
-      setTasks((prevTasks) =>
-        prevTasks
-          ? prevTasks.map((task) =>
-              task.id === id ? { ...task, completed } : task
-            )
-          : null
-      );
-    } catch (error) {
-      console.error('Error updating task completion:', error);
-    }
-  };
-
   const deleteTask = async (id: number) => {
     try {
       await fetch(`http://localhost:8080/tasks/${id}`, {
@@ -96,7 +75,7 @@ const App: React.FC = () => {
         <TaskList
           tasks={tasks}
           onDelete={deleteTask}
-          onCompleteChange={updateTaskCompletion}
+          onStatusChange={updateTaskStatus}
         />
       ) : (
         <p>Loading tasks...</p>
