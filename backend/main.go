@@ -15,17 +15,16 @@ import (
 )
 
 type Task struct {
-	ID        int    `json:"id"`
-	Title     string `json:"title"`
-	Content   string `json:"content"`
-	Completed bool   `json:"completed"`
+	ID      int    `json:"id"`
+	Title   string `json:"title"`
+	Content string `json:"content"`
+	Status  string `json:"status"`
 }
 
-var tasks []Task
 var db *sql.DB
 
 func getTasks(w http.ResponseWriter, r *http.Request) {
-	rows, err := db.Query("SELECT id, title, content, completed FROM tasks")
+	rows, err := db.Query("SELECT id, title, content, status FROM tasks")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -49,9 +48,21 @@ func getTasks(w http.ResponseWriter, r *http.Request) {
 func createTask(w http.ResponseWriter, r *http.Request) {
 	var task Task
 	json.NewDecoder(r.Body).Decode(&task)
-	task.ID = len(tasks) + 1
-	task.Completed = false
-	tasks = append(tasks, task)
+	task.Status = "未完了"
+
+	result, err := db.Exec("INSERT INTO tasks (title, content, status) VALUES (?, ?, ?)", task.Title, task.Content, task.Status)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	task.ID = int(id)
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(task)
 }
@@ -59,60 +70,35 @@ func createTask(w http.ResponseWriter, r *http.Request) {
 func deleteTask(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id, _ := strconv.Atoi(params["id"])
-	for index, task := range tasks {
-		if task.ID == id {
-			tasks = append(tasks[:index], tasks[index+1:]...)
-			break
-		}
-	}
-	w.WriteHeader(http.StatusNoContent)
-}
 
-func updateTaskCompletion(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	id, _ := strconv.Atoi(params["id"])
-	var updatedCompletion struct {
-		Completed bool `json:"completed"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&updatedCompletion); err != nil {
-		fmt.Println("Error decoding request body:", err)
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid request body"})
+	_, err := db.Exec("DELETE FROM tasks WHERE id = ?", id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	fmt.Println("Updated completion received:", updatedCompletion.Completed)
-	for index, task := range tasks {
-		if task.ID == id {
-			tasks[index].Completed = updatedCompletion.Completed
-			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(tasks[index])
-			return
-		}
-	}
-	w.WriteHeader(http.StatusNotFound)
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func updateTaskStatus(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id, _ := strconv.Atoi(params["id"])
+
 	var updatedStatus struct {
 		Status string `json:"status"`
 	}
 	json.NewDecoder(r.Body).Decode(&updatedStatus)
 
-	for index, task := range tasks {
-		if task.ID == id {
-			tasks[index].Completed = updatedStatus.Status == "完了"
-			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(tasks[index])
-			return
-		}
+	_, err := db.Exec("UPDATE tasks SET status = ? WHERE id = ?", updatedStatus.Status, id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	w.WriteHeader(http.StatusNotFound)
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func main() {
-
 	var err error
 	db, err = sql.Open("mysql", "root:root@tcp(127.0.0.1:3306)/taskdb")
 	if err != nil {
@@ -126,7 +112,7 @@ func main() {
 	r.HandleFunc("/tasks", getTasks).Methods("GET")
 	r.HandleFunc("/tasks", createTask).Methods("POST")
 	r.HandleFunc("/tasks/{id}", deleteTask).Methods("DELETE")
-	r.HandleFunc("/tasks/{id}/complete", updateTaskCompletion).Methods("PATCH")
+	r.HandleFunc("/tasks/{id}/status", updateTaskStatus).Methods("PATCH")
 	fmt.Println("Server is running on http://localhost:8080")
 	http.ListenAndServe(":8080", handlers.CORS(
 		handlers.AllowedOrigins([]string{"http://localhost:3000"}),
