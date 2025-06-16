@@ -48,7 +48,7 @@ func getTasks(w http.ResponseWriter, r *http.Request) {
 func createTask(w http.ResponseWriter, r *http.Request) {
 	var task Task
 	json.NewDecoder(r.Body).Decode(&task)
-	task.Status = "未完了"
+	task.Status = "registered"
 
 	result, err := db.Exec("INSERT INTO tasks (title, content, status) VALUES (?, ?, ?)", task.Title, task.Content, task.Status)
 	if err != nil {
