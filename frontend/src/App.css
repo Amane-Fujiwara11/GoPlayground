@@ -20,6 +20,24 @@
   background-color: #e0f7fa;
 }
 
+.StartButton {
+  padding: 8px 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.StartButton:hover {
+  background-color: #0056b3;
+}
+
+.TaskCard.doing {
+  background-color: #e0f7fa;
+}
+
 .TaskCard:hover {
   transform: translateY(-5px);
   box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
