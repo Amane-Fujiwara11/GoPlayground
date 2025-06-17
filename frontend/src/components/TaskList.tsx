@@ -16,39 +16,31 @@ interface TaskListProps {
 
 const TaskList: React.FC<TaskListProps> = ({ tasks, onDelete, onStatusChange }) => {
   return (
-    <table className="TaskTable">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Title</th>
-          <th>Content</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {tasks.map((task) => (
-          <tr key={task.id}>
-            <td>{task.id}</td>
-            <td>{task.title}</td>
-            <td>{task.content}</td>
-            <td>
-              <select
-                value={task.status}
-                onChange={(e) => onStatusChange(task.id, e.target.value)}
-              >
-                <option value="registered">未着手</option>
-                <option value="doing">進行中</option>
-                <option value="completed">完了</option>
-              </select>
-            </td>
-            <td>
-              <button onClick={() => onDelete(task.id)}>Delete</button>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div className="TaskCards">
+      {tasks.map((task) => (
+        <div key={task.id} className="TaskCard">
+          <h3>{task.title}</h3>
+          <p>{task.content}</p>
+          <select
+            value={task.status}
+            onChange={(e) => onStatusChange(task.id, e.target.value)}
+            style={{
+              appearance: "none",
+              border: "1px solid #ccc",
+              padding: "5px",
+              borderRadius: "4px",
+              backgroundColor: "#fff",
+              cursor: "pointer",
+            }}
+          >
+            <option value="registered">未着手</option>
+            <option value="doing">進行中</option>
+            <option value="completed">完了</option>
+          </select>
+          <button onClick={() => onDelete(task.id)}>Delete</button>
+        </div>
+      ))}
+    </div>
   );
 };
 
