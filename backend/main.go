@@ -87,7 +87,14 @@ func updateTaskStatus(w http.ResponseWriter, r *http.Request) {
 	var updatedStatus struct {
 		Status string `json:"status"`
 	}
-	json.NewDecoder(r.Body).Decode(&updatedStatus)
+	if err := json.NewDecoder(r.Body).Decode(&updatedStatus); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	if updatedStatus.Status != "registered" && updatedStatus.Status != "doing" && updatedStatus.Status != "completed" {
+		http.Error(w, "Invalid status value", http.StatusBadRequest)
+		return
+	}
 
 	_, err := db.Exec("UPDATE tasks SET status = ? WHERE id = ?", updatedStatus.Status, id)
 	if err != nil {
@@ -116,7 +123,7 @@ func main() {
 	fmt.Println("Server is running on http://localhost:8080")
 	http.ListenAndServe(":8080", handlers.CORS(
 		handlers.AllowedOrigins([]string{"http://localhost:3000"}),
-		handlers.AllowedMethods([]string{"GET", "POST", "DELETE", "OPTIONS"}),
-		handlers.AllowedHeaders([]string{"Content-Type"}),
+		handlers.AllowedMethods([]string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"}),
+		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
 	)(r))
 }
