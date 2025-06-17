@@ -19,25 +19,16 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onDelete, onStatusChange, on
   return (
     <div className="TaskCards">
       {tasks.map((task) => (
-        <div key={task.id} className="TaskCard">
+        <div key={task.id} className={`TaskCard ${task.status}`}>
           <h3>{task.title}</h3>
           <p>{task.content}</p>
-            {task.status !== "completed" && (
-              <select
-                value={task.status}
-                onChange={(e) => onStatusChange(task.id, e.target.value)}
-                style={{
-                  appearance: "none",
-                  border: "1px solid #ccc",
-                  padding: "5px",
-                  borderRadius: "4px",
-                  backgroundColor: "#fff",
-                  cursor: "pointer",
-                }}
+            {task.status === "registered" && (
+              <button
+                className="StartButton"
+                onClick={() => onStatusChange(task.id, "doing")}
               >
-                <option value="registered">未着手</option>
-                <option value="doing">進行中</option>
-              </select>
+                着手
+              </button>
             )}
             <input
               type="checkbox"
