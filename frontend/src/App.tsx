@@ -35,6 +35,27 @@ const App: React.FC = () => {
     }
   };
 
+  const updateTaskCompletion = async (id: number, completed: boolean) => {
+    try {
+      await fetch(`http://localhost:8080/tasks/${id}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: completed ? 'completed' : 'registered' }),
+      });
+      setTasks((prevTasks) =>
+        prevTasks
+          ? prevTasks.map((task) =>
+              task.id === id ? { ...task, status: completed ? 'completed' : 'registered' } : task
+            )
+          : null
+      );
+    } catch (error) {
+      console.error('Error updating task completion:', error);
+    }
+  };
+
   const updateTaskStatus = async (id: number, status: string) => {
     try {
       await fetch(`http://localhost:8080/tasks/${id}/status`, {
@@ -76,6 +97,7 @@ const App: React.FC = () => {
           tasks={tasks}
           onDelete={deleteTask}
           onStatusChange={updateTaskStatus}
+          onCompleteChange={updateTaskCompletion}
         />
       ) : (
         <p>Loading tasks...</p>

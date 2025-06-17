@@ -16,6 +16,10 @@
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
+.TaskCard.doing {
+  background-color: #e0f7fa;
+}
+
 .TaskCard:hover {
   transform: translateY(-5px);
   box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
@@ -48,6 +52,19 @@
 
 .TaskCard button:hover {
   background-color: #a71d2a;
+}
+
+.TaskCheckbox {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #007bff;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.TaskCheckbox:checked {
+  background-color: #007bff;
+  border-color: #0056b3;
 }
 
 form {
