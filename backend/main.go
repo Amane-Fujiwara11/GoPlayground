@@ -23,20 +23,10 @@ type Task struct {
 
 var db *sql.DB
 
-func respondJSON(w http.ResponseWriter, status int, payload interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(payload)
-}
-
-func respondError(w http.ResponseWriter, status int, message string) {
-	respondJSON(w, status, map[string]string{"error": message})
-}
-
 func getTasks(w http.ResponseWriter, r *http.Request) {
 	rows, err := db.Query("SELECT id, title, content, status FROM tasks")
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
@@ -45,12 +35,14 @@ func getTasks(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var task Task
 		if err := rows.Scan(&task.ID, &task.Title, &task.Content, &task.Status); err != nil {
-			respondError(w, http.StatusInternalServerError, err.Error())
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		tasks = append(tasks, task)
 	}
-	respondJSON(w, http.StatusOK, tasks)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(tasks)
 }
 
 func createTask(w http.ResponseWriter, r *http.Request) {
