@@ -5,7 +5,7 @@
 **backend 起動**
 
 ```
-cd /backend
+cd ./backend
 go run main.go
 # Go to http://localhost:8080
 ```
@@ -13,7 +13,7 @@ go run main.go
 **frontend 起動**
 
 ```
-cd /frontend
+cd ./frontend
 npm start
 # Go to http://localhost:3000
 ```
