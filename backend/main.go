@@ -10,16 +10,11 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 
+	"backend/models"
+
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
-
-type Task struct {
-	ID      int    `json:"id"`
-	Title   string `json:"title"`
-	Content string `json:"content"`
-	Status  string `json:"status"`
-}
 
 var db *sql.DB
 
@@ -34,43 +29,21 @@ func respondError(w http.ResponseWriter, status int, message string) {
 }
 
 func getTasks(w http.ResponseWriter, r *http.Request) {
-	rows, err := db.Query("SELECT id, title, content, status FROM tasks")
+	tasks, err := models.GetTasks(db)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err.Error())
 		return
-	}
-	defer rows.Close()
-
-	var tasks []Task
-	for rows.Next() {
-		var task Task
-		if err := rows.Scan(&task.ID, &task.Title, &task.Content, &task.Status); err != nil {
-			respondError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		tasks = append(tasks, task)
 	}
 	respondJSON(w, http.StatusOK, tasks)
 }
 
 func createTask(w http.ResponseWriter, r *http.Request) {
-	var task Task
+	var task models.Task
 	json.NewDecoder(r.Body).Decode(&task)
-	task.Status = "registered"
-
-	result, err := db.Exec("INSERT INTO tasks (title, content, status) VALUES (?, ?, ?)", task.Title, task.Content, task.Status)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if err := models.CreateTask(db, &task); err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-
-	id, err := result.LastInsertId()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	task.ID = int(id)
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(task)
 }
@@ -79,12 +52,10 @@ func deleteTask(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id, _ := strconv.Atoi(params["id"])
 
-	_, err := db.Exec("DELETE FROM tasks WHERE id = ?", id)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if err := models.DeleteTask(db, id); err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -104,12 +75,10 @@ func updateTaskStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := db.Exec("UPDATE tasks SET status = ? WHERE id = ?", updatedStatus.Status, id)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if err := models.UpdateTaskStatus(db, id, updatedStatus.Status); err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -129,9 +98,11 @@ func main() {
 	r.HandleFunc("/tasks/{id}", deleteTask).Methods("DELETE")
 	r.HandleFunc("/tasks/{id}/status", updateTaskStatus).Methods("PATCH")
 	fmt.Println("Server is running on http://localhost:8080")
-	http.ListenAndServe(":8080", handlers.CORS(
+	if err := http.ListenAndServe(":8080", handlers.CORS(
 		handlers.AllowedOrigins([]string{"http://localhost:3000"}),
 		handlers.AllowedMethods([]string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"}),
 		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
-	)(r))
+	)(r)); err != nil {
+		log.Fatal("ListenAndServe: ", err)
+	}
 }
