@@ -92,11 +92,7 @@ func main() {
 
 	fmt.Println("Connected to MySQL!")
 
-	r := mux.NewRouter()
-	r.HandleFunc("/tasks", getTasks).Methods("GET")
-	r.HandleFunc("/tasks", createTask).Methods("POST")
-	r.HandleFunc("/tasks/{id}", deleteTask).Methods("DELETE")
-	r.HandleFunc("/tasks/{id}/status", updateTaskStatus).Methods("PATCH")
+	r := NewRouter()
 	fmt.Println("Server is running on http://localhost:8080")
 	if err := http.ListenAndServe(":8080", handlers.CORS(
 		handlers.AllowedOrigins([]string{"http://localhost:3000"}),

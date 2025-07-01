@@ -6,7 +6,7 @@
 
 ```
 cd ./backend
-go run main.go
+go run .
 # Go to http://localhost:8080
 ```
 
