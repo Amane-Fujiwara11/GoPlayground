@@ -1,6 +1,7 @@
 package main
 
 import (
+	"backend/db"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -8,15 +9,14 @@ import (
 	"net/http"
 	"strconv"
 
-	_ "github.com/go-sql-driver/mysql"
-
 	"backend/models"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
-var db *sql.DB
+var dbConn *sql.DB
 
 func respondJSON(w http.ResponseWriter, status int, payload interface{}) {
 	w.Header().Set("Content-Type", "application/json")
@@ -29,7 +29,7 @@ func respondError(w http.ResponseWriter, status int, message string) {
 }
 
 func getTasks(w http.ResponseWriter, r *http.Request) {
-	tasks, err := models.GetTasks(db)
+	tasks, err := models.GetTasks(dbConn)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -40,7 +40,7 @@ func getTasks(w http.ResponseWriter, r *http.Request) {
 func createTask(w http.ResponseWriter, r *http.Request) {
 	var task models.Task
 	json.NewDecoder(r.Body).Decode(&task)
-	if err := models.CreateTask(db, &task); err != nil {
+	if err := models.CreateTask(dbConn, &task); err != nil {
 		respondError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -52,7 +52,7 @@ func deleteTask(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id, _ := strconv.Atoi(params["id"])
 
-	if err := models.DeleteTask(db, id); err != nil {
+	if err := models.DeleteTask(dbConn, id); err != nil {
 		respondError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -75,7 +75,7 @@ func updateTaskStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := models.UpdateTaskStatus(db, id, updatedStatus.Status); err != nil {
+	if err := models.UpdateTaskStatus(dbConn, id, updatedStatus.Status); err != nil {
 		respondError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -84,11 +84,11 @@ func updateTaskStatus(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	var err error
-	db, err = sql.Open("mysql", "root:root@tcp(127.0.0.1:3306)/taskdb")
+	dbConn, err = db.NewDB()
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
+	defer dbConn.Close()
 
 	fmt.Println("Connected to MySQL!")
 
