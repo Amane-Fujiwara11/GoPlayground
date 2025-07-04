@@ -3,8 +3,11 @@ package main
 import (
 	"backend/constants"
 	"backend/db"
+	"backend/infrastructure/mysql"
+	"backend/interface/handler"
 	"backend/models"
 	"backend/response"
+	"backend/usecase"
 	"backend/validation"
 	"database/sql"
 	"encoding/json"
@@ -100,7 +103,10 @@ func main() {
 
 	fmt.Println("Connected to MySQL!")
 
-	r := NewRouter()
+	repo := mysql.NewTaskRepository(dbConn)
+	uc := usecase.TaskUsecase{Repo: repo}
+	taskHandler := handler.NewTaskHandler(&uc)
+	r := NewRouter(taskHandler)
 	fmt.Println("Server is running on http://localhost:8080")
 	if err := http.ListenAndServe(":8080", handlers.CORS(
 		handlers.AllowedOrigins([]string{"http://localhost:3000"}),
