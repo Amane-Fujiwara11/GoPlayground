@@ -3,6 +3,7 @@ package main
 import (
 	"backend/db"
 	"backend/models"
+	"backend/response"
 	"backend/validation"
 	"database/sql"
 	"encoding/json"
@@ -24,14 +25,14 @@ func respondJSON(w http.ResponseWriter, status int, payload interface{}) {
 	json.NewEncoder(w).Encode(payload)
 }
 
-func respondError(w http.ResponseWriter, status int, message string) {
-	respondJSON(w, status, map[string]string{"error": message})
+func respondError(w http.ResponseWriter, status int, err error, message string) {
+	response.RespondError(w, status, err, message)
 }
 
 func getTasks(w http.ResponseWriter, r *http.Request) {
 	tasks, err := models.GetTasks(dbConn)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, err.Error())
+		respondError(w, http.StatusInternalServerError, err, "DB取得エラー")
 		return
 	}
 	respondJSON(w, http.StatusOK, tasks)
@@ -43,11 +44,11 @@ func createTask(w http.ResponseWriter, r *http.Request) {
 		return v.(*models.Task).Validate()
 	})
 	if err != nil {
-		respondError(w, http.StatusBadRequest, err.Error())
+		respondError(w, http.StatusBadRequest, err, "バリデーションエラー")
 		return
 	}
 	if err := models.CreateTask(dbConn, &task); err != nil {
-		respondError(w, http.StatusInternalServerError, err.Error())
+		respondError(w, http.StatusInternalServerError, err, "DB登録エラー")
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
@@ -59,7 +60,7 @@ func deleteTask(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(params["id"])
 
 	if err := models.DeleteTask(dbConn, id); err != nil {
-		respondError(w, http.StatusInternalServerError, err.Error())
+		respondError(w, http.StatusInternalServerError, err, "DB削除エラー")
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
@@ -82,7 +83,7 @@ func updateTaskStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := models.UpdateTaskStatus(dbConn, id, updatedStatus.Status); err != nil {
-		respondError(w, http.StatusInternalServerError, err.Error())
+		respondError(w, http.StatusInternalServerError, err, "DBステータス更新エラー")
 		return
 	}
 	w.WriteHeader(http.StatusOK)
