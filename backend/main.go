@@ -1,6 +1,7 @@
 package main
 
 import (
+	"backend/constants"
 	"backend/db"
 	"backend/models"
 	"backend/response"
@@ -77,7 +78,7 @@ func updateTaskStatus(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-	if updatedStatus.Status != "registered" && updatedStatus.Status != "doing" && updatedStatus.Status != "completed" {
+	if updatedStatus.Status != constants.StatusRegistered && updatedStatus.Status != constants.StatusDoing && updatedStatus.Status != constants.StatusCompleted {
 		http.Error(w, "Invalid status value", http.StatusBadRequest)
 		return
 	}
