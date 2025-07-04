@@ -2,14 +2,14 @@ package main
 
 import (
 	"backend/db"
+	"backend/models"
+	"backend/validation"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"strconv"
-
-	"backend/models"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/handlers"
@@ -39,7 +39,13 @@ func getTasks(w http.ResponseWriter, r *http.Request) {
 
 func createTask(w http.ResponseWriter, r *http.Request) {
 	var task models.Task
-	json.NewDecoder(r.Body).Decode(&task)
+	err := validation.ParseAndValidateJSON(r, &task, func(v interface{}) error {
+		return v.(*models.Task).Validate()
+	})
+	if err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
 	if err := models.CreateTask(dbConn, &task); err != nil {
 		respondError(w, http.StatusInternalServerError, err.Error())
 		return
