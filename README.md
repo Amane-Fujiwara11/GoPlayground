@@ -2,6 +2,12 @@
 
 ## 起動手順
 
+**MySQL 起動**
+
+```
+docker-compose up -d
+```
+
 **backend 起動**
 
 ```
